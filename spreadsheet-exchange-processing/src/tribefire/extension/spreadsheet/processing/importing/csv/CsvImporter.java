@@ -31,11 +31,8 @@ import com.braintribe.gm.model.reason.Maybe;
 import com.braintribe.gm.model.reason.Reason;
 import com.braintribe.gm.model.reason.Reasons;
 import com.braintribe.logging.Logger;
-import com.braintribe.model.extensiondeployment.script.Script;
 import com.braintribe.model.generic.GenericEntity;
 import com.braintribe.model.generic.reflection.Property;
-import com.braintribe.model.processing.core.expert.api.DenotationMap;
-import com.braintribe.model.processing.deployment.script.ScriptEngine;
 import com.braintribe.utils.IOTools;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
@@ -43,6 +40,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvMalformedLineException;
 
+import tribefire.extension.scripting.api.ScriptingEngineResolver;
 import tribefire.extension.spreadsheet.model.exchange.api.request.ImportCsvSheet;
 import tribefire.extension.spreadsheet.model.exchange.metadata.SpreadsheetCharset;
 import tribefire.extension.spreadsheet.model.exchange.metadata.SpreadsheetDataDelimiter;
@@ -55,8 +53,8 @@ public class CsvImporter extends tribefire.extension.spreadsheet.processing.impo
 
 	protected String defaultDelimiter = ",";
 
-	public CsvImporter(DenotationMap<Script, ScriptEngine<?>> engines) {
-		super(engines);
+	public CsvImporter(ScriptingEngineResolver scriptingEngineResolver) {
+		super(scriptingEngineResolver);
 	}
 
 	@Configurable

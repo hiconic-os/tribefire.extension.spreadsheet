@@ -11,7 +11,7 @@
 // ============================================================================
 package tribefire.extension.spreadsheet.exchange_processing.test.wire.space;
 
-import java.time.ZoneId;
+import org.mockito.Mockito;
 
 import com.braintribe.gm.service.access.api.AccessProcessingConfiguration;
 import com.braintribe.gm.service.access.wire.common.contract.AccessProcessingConfigurationContract;
@@ -21,7 +21,6 @@ import com.braintribe.gm.service.wire.common.contract.ServiceProcessingConfigura
 import com.braintribe.model.generic.GMF;
 import com.braintribe.model.generic.eval.Evaluator;
 import com.braintribe.model.meta.GmMetaModel;
-import com.braintribe.model.processing.core.expert.impl.PolymorphicDenotationMap;
 import com.braintribe.model.processing.meta.editor.BasicModelMetaDataEditor;
 import com.braintribe.model.processing.meta.editor.ModelMetaDataEditor;
 import com.braintribe.model.processing.meta.oracle.BasicModelOracle;
@@ -35,6 +34,7 @@ import com.braintribe.wire.api.annotation.Import;
 import com.braintribe.wire.api.annotation.Managed;
 import com.braintribe.wire.api.context.WireContextConfiguration;
 
+import tribefire.extension.scripting.api.ScriptingEngineResolver;
 import tribefire.extension.spreadsheet.exchange_processing.test.TestConstants;
 import tribefire.extension.spreadsheet.exchange_processing.test.wire.contract.SpreadsheetExchangeProcessingTestContract;
 import tribefire.extension.spreadsheet.model.exchange.api.request.SpreadsheetExchangeRequest;
@@ -56,26 +56,26 @@ import tribefire.extension.spreadsheet.processing.service.SpreadsheetExchangePro
 
 @Managed
 public class SpreadsheetExchangeProcessingTestSpace implements SpreadsheetExchangeProcessingTestContract {
-	
+
 	@Import
 	private AccessProcessingConfigurationContract accessProcessingConfiguration;
-	
+
 	@Import
 	private CommonAccessProcessingContract commonAccessProcessing;
 
 	@Import
 	private ServiceProcessingConfigurationContract serviceProcessingConfiguration;
-	
+
 	@Import
 	private CommonServiceProcessingContract commonServiceProcessing;
-	
+
 	@Override
 	public void onLoaded(WireContextConfiguration configuration) {
 		accessProcessingConfiguration.registerAccessConfigurer(this::configureAccesses);
 		serviceProcessingConfiguration.registerServiceConfigurer(this::configureServices);
 		serviceProcessingConfiguration.registerSecurityConfigurer(this::configureSecurity);
 	}
-	
+
 	private void configureAccesses(AccessProcessingConfiguration configuration) {
 		configuration.registerAccess(TestConstants.ACCESS_IMPORT, configuredModel());
 		configuration.registerAccess(TestConstants.ACCESS_IMPORT_REGEX, regexConfiguredModel());
@@ -89,218 +89,211 @@ public class SpreadsheetExchangeProcessingTestSpace implements SpreadsheetExchan
 		configuration.registerAccess(TestConstants.ACCESS_IMPORT_SIMPLE_XLSX, configuredModelSimpleXlsx());
 		configuration.registerAccessRequestProcessor(SpreadsheetExchangeRequest.T, spreadsheetExchangeProcessor());
 	}
-	
+
 	private void configureServices(ConfigurableDispatchingServiceProcessor bean) {
 		bean.removeInterceptor("auth");
 		// TODO register or remove interceptors and register tested service processors
-		/*
-			bean.registerInterceptor("someInterceptor");
-			bean.removeInterceptor("someInterceptor");
-			bean.register(SomeServiceRequest.T, someServiceProcessor());
-		*/
+		/* bean.registerInterceptor("someInterceptor"); bean.removeInterceptor("someInterceptor");
+		 * bean.register(SomeServiceRequest.T, someServiceProcessor()); */
 	}
-	
+
 	private void configureSecurity(InMemorySecurityServiceProcessor bean) {
 		// TODO add users IF your requests are to be authorized while testing
 		// (make sure the 'auth' interceptor is not removed in that case in the 'configureServices' method)
-		/* 
-			User someUser = User.T.create();
-			user.setId("someUserId");
-			user.setName("someUserName");
-			user.setPassword("somePassword");
-	
-			bean.addUser(someUser);
-		*/
+		/* User someUser = User.T.create(); user.setId("someUserId"); user.setName("someUserName");
+		 * user.setPassword("somePassword");
+		 * 
+		 * bean.addUser(someUser); */
 	}
-	
+
 	@Managed
 	private GmMetaModel configuredModel() {
 		GmMetaModel bean = GmMetaModel.T.create();
 
 		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
-		bean.getDependencies().add(GMF.getTypeReflection().getModel("tribefire.extension.spreadsheet:spreadsheet-exchange-test-model").getMetaModel());
-		
+		bean.getDependencies()
+				.add(GMF.getTypeReflection().getModel("tribefire.extension.spreadsheet:spreadsheet-exchange-test-model").getMetaModel());
+
 		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
+
 		mdEditor.onEntityType(TestRecord.T).addPropertyMetaData(TestRecord.rowNum, SpreadsheetRowNumProperty.T.create());
 		mdEditor.onEntityType(TestRecord.T).addMetaData(SpreadsheetDataDelimiter.create(";"));
-		
-		return bean;
-	}
-	
-	@Managed
-	private GmMetaModel configuredModelSimpleXlsx() {
-		GmMetaModel bean = GmMetaModel.T.create();
-		
-		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
-		bean.getDependencies().add(configuredModel());
-		
-		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
-		mdEditor.onEntityType(Record.T).addPropertyMetaData(Record.dateValue, SpreadsheetColumnDateZoneMapping.create("UTC"));
-		
-		return bean;
-	}
-	
-	@Managed
-	private GmMetaModel updateConfiguredModel() {
-		GmMetaModel bean = GmMetaModel.T.create();
-		
-		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
-		bean.getDependencies().add(configuredModel());
-		
-		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
-		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.birthDate, SpreadsheetColumnDatePatternMapping.create("dd.MM.yyyy"));
-		
-		SpreadsheetIdentityProperty idProperty = SpreadsheetIdentityProperty.T.create();
-		idProperty.setNullIsIdentifier(true);
-		
-		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.socialContractNumber, SpreadsheetIdentityProperty.T.create());
-		
-		return bean;
-	}
-	
-	@Managed
-	private GmMetaModel trimmingConfiguredModel() {
-		GmMetaModel bean = GmMetaModel.T.create();
-		
-		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
-		bean.getDependencies().add(configuredModel());
-		
-		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
-		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.birthDate, SpreadsheetColumnDatePatternMapping.create("dd.MM.yyyy"));
-		
-		SpreadsheetColumnTrimming columnTrimming = SpreadsheetColumnTrimming.T.create();
-		
-		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.hobby, columnTrimming);
-		
+
 		return bean;
 	}
 
-	
+	@Managed
+	private GmMetaModel configuredModelSimpleXlsx() {
+		GmMetaModel bean = GmMetaModel.T.create();
+
+		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
+		bean.getDependencies().add(configuredModel());
+
+		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
+
+		mdEditor.onEntityType(Record.T).addPropertyMetaData(Record.dateValue, SpreadsheetColumnDateZoneMapping.create("UTC"));
+
+		return bean;
+	}
+
+	@Managed
+	private GmMetaModel updateConfiguredModel() {
+		GmMetaModel bean = GmMetaModel.T.create();
+
+		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
+		bean.getDependencies().add(configuredModel());
+
+		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
+
+		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.birthDate, SpreadsheetColumnDatePatternMapping.create("dd.MM.yyyy"));
+
+		SpreadsheetIdentityProperty idProperty = SpreadsheetIdentityProperty.T.create();
+		idProperty.setNullIsIdentifier(true);
+
+		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.socialContractNumber, SpreadsheetIdentityProperty.T.create());
+
+		return bean;
+	}
+
+	@Managed
+	private GmMetaModel trimmingConfiguredModel() {
+		GmMetaModel bean = GmMetaModel.T.create();
+
+		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
+		bean.getDependencies().add(configuredModel());
+
+		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
+
+		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.birthDate, SpreadsheetColumnDatePatternMapping.create("dd.MM.yyyy"));
+
+		SpreadsheetColumnTrimming columnTrimming = SpreadsheetColumnTrimming.T.create();
+
+		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.hobby, columnTrimming);
+
+		return bean;
+	}
+
 	@Managed
 	private GmMetaModel sharedConfiguredModel() {
 		GmMetaModel bean = GmMetaModel.T.create();
-		
+
 		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
-		bean.getDependencies().add(GMF.getTypeReflection().getModel("tribefire.extension.spreadsheet:spreadsheet-exchange-test-model").getMetaModel());
-		
-		
+		bean.getDependencies()
+				.add(GMF.getTypeReflection().getModel("tribefire.extension.spreadsheet:spreadsheet-exchange-test-model").getMetaModel());
+
 		ModelOracle modelOracle = new BasicModelOracle(bean);
 		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
+
 		mdEditor.onEntityType(PersonContext.T).addPropertyMetaData(TestRecord.rowNum, SpreadsheetRowNumProperty.T.create());
 		mdEditor.onEntityType(TestRecord.T).addMetaData(SpreadsheetDataDelimiter.create(";"));
 		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.birthDate, SpreadsheetColumnDatePatternMapping.create("dd.MM.yyyy"));
-		
+
 		SpreadsheetEntityContextLinking linking = SpreadsheetEntityContextLinking.T.create();
 		linking.setHashProperty(modelOracle.findEntityTypeOracle(Person.T).findProperty(Person.hash).asGmProperty());
 		EntityTypeOracle personContextOracle = modelOracle.findEntityTypeOracle(PersonContext.T);
 		linking.setLinkProperty(personContextOracle.findProperty(PersonContext.person).asGmProperty());
 		linking.setType(personContextOracle.asGmEntityType());
-		
+
 		mdEditor.onEntityType(Person.T).addMetaData(linking);
-		
+
 		return bean;
 	}
-	
+
 	@Managed
 	private GmMetaModel updateNullForbiddenConfiguredModel() {
 		GmMetaModel bean = GmMetaModel.T.create();
-		
+
 		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
 		bean.getDependencies().add(configuredModel());
-		
+
 		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
+
 		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.birthDate, SpreadsheetColumnDatePatternMapping.create("dd.MM.yyyy"));
-		
-		
+
 		mdEditor.onEntityType(Person.T).addPropertyMetaData(Person.socialContractNumber, SpreadsheetIdentityProperty.T.create());
-		
+
 		return bean;
 	}
-	
+
 	@Managed
 	private GmMetaModel regexConfiguredModel() {
 		GmMetaModel bean = GmMetaModel.T.create();
-		
+
 		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model");
 		bean.getDependencies().add(configuredModel());
-		
+
 		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
+
 		mdEditor.onEntityType(Record.T).addPropertyMetaData(Record.stringValue, SpreadsheetColumnRegexMapping.create("Hallo (.*)", "- $1 -"));
-		
+
 		return bean;
 	}
-	
+
 	@Managed
 	private GmMetaModel configuredModel2() {
 		GmMetaModel bean = GmMetaModel.T.create();
-		
+
 		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model2");
 		bean.getDependencies().add(configuredModel());
-		
+
 		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
 
 		mdEditor.onEntityType(DateTestRecord.T) //
-			.addPropertyMetaData(DateTestRecord.policyStartDate, SpreadsheetColumnNameMapping.create("Policy_StartDate"));
-		
+				.addPropertyMetaData(DateTestRecord.policyStartDate, SpreadsheetColumnNameMapping.create("Policy_StartDate"));
+
 		mdEditor.onEntityType(DateTestRecord.T) //
-			.addPropertyMetaData(DateTestRecord.asAtDate, SpreadsheetColumnNameMapping.create("AsAtDate"));
+				.addPropertyMetaData(DateTestRecord.asAtDate, SpreadsheetColumnNameMapping.create("AsAtDate"));
 
 		return bean;
 	}
-	
+
 	@Managed
 	private GmMetaModel configuredModel3() {
 		GmMetaModel bean = GmMetaModel.T.create();
-		
+
 		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model3");
 		bean.getDependencies().add(configuredModel2());
-		
+
 		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
+
 		// 30/06/2020 0:00
 		mdEditor.onEntityType(TestRecord.T) //
-		.addPropertyMetaData(SpreadsheetColumnDatePatternMapping.create("d/M/yyyy H:m"));
-		
+				.addPropertyMetaData(SpreadsheetColumnDatePatternMapping.create("d/M/yyyy H:m"));
+
 		return bean;
 	}
-	
+
 	@Managed
 	private GmMetaModel configuredModelSimpleCsv() {
 		GmMetaModel bean = GmMetaModel.T.create();
-		
+
 		bean.setName("tribefire.extension.spreadsheet:configured-spreadsheet-exchange-test-model3");
 		bean.getDependencies().add(configuredModel());
-		
+
 		ModelMetaDataEditor mdEditor = new BasicModelMetaDataEditor(bean);
-		
+
 		// 30/06/2020 0:00
 		mdEditor.onEntityType(TestRecord.T) //
-		.addPropertyMetaData(SpreadsheetColumnDatePatternMapping.create("yyyy-MM-dd"));
-		
+				.addPropertyMetaData(SpreadsheetColumnDatePatternMapping.create("yyyy-MM-dd"));
+
 		return bean;
 	}
-	
+
 	@Override
 	public Evaluator<ServiceRequest> evaluator() {
 		return commonServiceProcessing.evaluator();
 	}
-	
+
 	@Override
 	public PersistenceGmSessionFactory sessionFactory() {
 		return commonAccessProcessing.sessionFactory();
 	}
-	
+
 	private SpreadsheetExchangeProcessor spreadsheetExchangeProcessor() {
 		SpreadsheetExchangeProcessor bean = new SpreadsheetExchangeProcessor();
-		bean.setEngines(new PolymorphicDenotationMap<>());
+		ScriptingEngineResolver scriptingEngineResolver = Mockito.mock(ScriptingEngineResolver.class);
+		bean.setEngineResolver(scriptingEngineResolver);
 		return bean;
 	}
-	
+
 }

@@ -15,6 +15,7 @@ import com.braintribe.cartridge.common.processing.accessrequest.InternalizingAcc
 import com.braintribe.wire.api.annotation.Import;
 import com.braintribe.wire.api.annotation.Managed;
 
+import tribefire.extension.scripting.module.wire.contract.ScriptingContract;
 import tribefire.extension.spreadsheet.model.exchange.api.request.SpreadsheetExchangeRequest;
 import tribefire.extension.spreadsheet.processing.service.SpreadsheetExchangeProcessor;
 import tribefire.module.wire.contract.ModuleResourcesContract;
@@ -30,11 +31,13 @@ public class SpreadsheetExchangeModuleSpace implements TribefireModuleContract {
 	@Import
 	private ModuleResourcesContract moduleResources;
 
+	@Import
+	private ScriptingContract scripting;
+
 	@Override
 	public void bindHardwired() {
 		// Bind hardwired deployables here.
-		tfPlatform.hardwiredDeployables()
-				.bindOnNewServiceDomain("domain.spreadsheet.exchange", "Spreadsheet Service Domain") //
+		tfPlatform.hardwiredDeployables().bindOnNewServiceDomain("domain.spreadsheet.exchange", "Spreadsheet Service Domain") //
 				.model("tribefire.extension.spreadsheet:spreadsheet-exchange-api-model") //
 				.serviceProcessor( //
 						"processor.spreadsheet.exchange", //
@@ -46,15 +49,14 @@ public class SpreadsheetExchangeModuleSpace implements TribefireModuleContract {
 
 	@Managed
 	private InternalizingAccessRequestProcessor<SpreadsheetExchangeRequest, Object> spreadsheetExchangeServiceProcessor() {
-		return new InternalizingAccessRequestProcessor<SpreadsheetExchangeRequest, Object>(
-				spreadsheetExchangeProcessor(), tfPlatform.requestUserRelated().sessionFactory(),
-				tfPlatform.systemUserRelated().sessionFactory());
+		return new InternalizingAccessRequestProcessor<SpreadsheetExchangeRequest, Object>(spreadsheetExchangeProcessor(),
+				tfPlatform.requestUserRelated().sessionFactory(), tfPlatform.systemUserRelated().sessionFactory());
 	}
 
 	@Managed
 	private SpreadsheetExchangeProcessor spreadsheetExchangeProcessor() {
 		SpreadsheetExchangeProcessor bean = new SpreadsheetExchangeProcessor();
-		bean.setEngines(tfPlatform.scripting().engines());
+		bean.setEngineResolver(scripting.scriptingEngineResolver());
 		bean.setStreamPipeFactory(tfPlatform.resourceProcessing().streamPipeFactory());
 		return bean;
 	}

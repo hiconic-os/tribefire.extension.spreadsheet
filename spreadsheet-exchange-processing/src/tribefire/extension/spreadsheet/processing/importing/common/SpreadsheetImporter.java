@@ -51,7 +51,6 @@ import com.braintribe.gm.model.reason.Reason;
 import com.braintribe.gm.model.reason.Reasons;
 import com.braintribe.gm.model.reason.essential.InternalError;
 import com.braintribe.logging.Logger;
-import com.braintribe.model.extensiondeployment.script.Script;
 import com.braintribe.model.generic.GenericEntity;
 import com.braintribe.model.generic.eval.Evaluator;
 import com.braintribe.model.generic.manipulation.DeleteMode;
@@ -74,10 +73,6 @@ import com.braintribe.model.processing.accessrequest.api.AccessRequestContext;
 import com.braintribe.model.processing.core.commons.EntityHashingComparator;
 import com.braintribe.model.processing.core.commons.EntityHashingComparator.Builder;
 import com.braintribe.model.processing.core.commons.hashing.EntityHashing;
-import com.braintribe.model.processing.core.expert.api.DenotationMap;
-import com.braintribe.model.processing.deployment.script.CompiledScript;
-import com.braintribe.model.processing.deployment.script.ScriptEngine;
-import com.braintribe.model.processing.deployment.script.ScriptEvaluationException;
 import com.braintribe.model.processing.meta.cmd.builders.EntityMdResolver;
 import com.braintribe.model.processing.meta.cmd.builders.ModelMdResolver;
 import com.braintribe.model.processing.meta.cmd.builders.PropertyMdResolver;
@@ -105,6 +100,9 @@ import com.braintribe.utils.stream.api.StreamPipe;
 import com.braintribe.utils.stream.api.StreamPipeFactory;
 import com.braintribe.utils.stream.api.StreamPipes;
 
+import tribefire.extension.scripting.api.CompiledScript;
+import tribefire.extension.scripting.api.ScriptingEngineResolver;
+import tribefire.extension.scripting.model.deployment.Script;
 import tribefire.extension.spreadsheet.model.exchange.api.data.ImportCompletionStatus;
 import tribefire.extension.spreadsheet.model.exchange.api.data.ImportReport;
 import tribefire.extension.spreadsheet.model.exchange.api.data.PushAddress;
@@ -134,7 +132,6 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 	private static final int MAX_ERROR_IN_REPORT = 1000;
 
 	protected static List<TypeConverter<?, ?>> converters = new ArrayList<TypeConverter<?, ?>>();
-	private DenotationMap<Script, ScriptEngine<?>> engines;
 	private T request;
 	private StreamPipeFactory streamPipeFactory;
 	private EntityType<? extends ImportReport> reportType;
@@ -167,9 +164,10 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 
 	private Map<Script, CompiledScript> compiledScriptCache = new HashMap<>();
 	private int threadCount = 8;
+	private ScriptingEngineResolver scriptingEngineResolver;
 
-	public SpreadsheetImporter(DenotationMap<Script, ScriptEngine<?>> engines) {
-		this.engines = engines;
+	public SpreadsheetImporter(ScriptingEngineResolver scriptingEngineResolver) {
+		this.scriptingEngineResolver = scriptingEngineResolver;
 	}
 
 	@Configurable
@@ -1048,20 +1046,11 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 		}
 	}
 
-	private Function<String, String> getColumnNameAdapter(SpreadsheetColumnNameAdapterScriptMapping nameMapping) throws ScriptEvaluationException {
+	private Function<String, String> getColumnNameAdapter(SpreadsheetColumnNameAdapterScriptMapping nameMapping) {
 		if (nameMapping != null) {
 			Script script = nameMapping.getScript();
-			ScriptEngine<Script> engine = engines.get(script);
-
-			CompiledScript compiledScript = engine.compile(script);
-
-			return columnName -> {
-				try {
-					return compiledScript.evaluate(Collections.singletonMap("columnName", columnName));
-				} catch (ScriptEvaluationException e) {
-					throw new RuntimeException(e);
-				}
-			};
+			CompiledScript compiledScript = scriptingEngineResolver.compile(script).get();
+			return columnName -> (String) compiledScript.evaluate(Collections.singletonMap("columnName", columnName)).get();
 		} else {
 			return Function.identity();
 		}
@@ -1163,24 +1152,14 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 
 				CompiledScript compiledScript = compiledScriptCache.computeIfAbsent(script, this::compileScript);
 
-				try {
-					mappingColumnName = compiledScript.evaluate(Collections.singletonMap("propertyName", property.getName()));
-				} catch (ScriptEvaluationException e) {
-					throw new RuntimeException("Error while evaluating SpreadsheetColumnNameScript: " + script, e);
-				}
+				mappingColumnName = (String) compiledScript.evaluate(Collections.singletonMap("propertyName", property.getName())).get();
 			}
 		}
 		return mappingColumnName;
 	}
 
 	private CompiledScript compileScript(Script script) {
-		ScriptEngine<Script> scriptEngine = (ScriptEngine<Script>) engines.get(script);
-
-		try {
-			return scriptEngine.compile(script);
-		} catch (ScriptEvaluationException e) {
-			throw new RuntimeException("Error while compiling SpreadsheetColumnNameScript: " + script, e);
-		}
+		return scriptingEngineResolver.compile(script).get();
 	}
 
 	protected abstract EntityStreamer streamEntitiesFromSpreadsheet(SheetEntityStreamingContext<T> streamContext) throws Exception;
@@ -1267,22 +1246,11 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 		}
 
 		private CompiledScript compileScript(Script script) {
-			ScriptEngine<Script> scriptEngine = engines.get(script);
-			CompiledScript compiledScript;
-			try {
-				compiledScript = scriptEngine.compile(script);
-			} catch (ScriptEvaluationException e1) {
-				throw new RuntimeException(e1);
-			}
-			return compiledScript;
+			return scriptingEngineResolver.compile(script).get();
 		}
 
 		private boolean runFilterScript(CompiledScript compiledScript, GenericEntity e) {
-			try {
-				return (boolean) compiledScript.evaluate(Collections.singletonMap("entity", e));
-			} catch (ScriptEvaluationException e1) {
-				throw new RuntimeException(e1);
-			}
+			return (boolean) compiledScript.evaluate(Collections.singletonMap("entity", e)).get();
 		}
 
 		public Predicate<GenericEntity> buildEntityFilter() {

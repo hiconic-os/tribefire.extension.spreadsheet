@@ -11,18 +11,18 @@
 // ============================================================================
 package tribefire.extension.spreadsheet.model.exchange.metadata;
 
-
-import com.braintribe.model.extensiondeployment.script.Script;
 import com.braintribe.model.generic.annotation.meta.Mandatory;
 import com.braintribe.model.generic.reflection.EntityType;
 import com.braintribe.model.generic.reflection.EntityTypes;
+
+import tribefire.extension.scripting.model.deployment.Script;
 
 public interface SpreadsheetColumnNameScriptMapping extends AbstractSpreadsheetColumnNameMapping {
 
 	final EntityType<SpreadsheetColumnNameScriptMapping> T = EntityTypes.T(SpreadsheetColumnNameScriptMapping.class);
 
-	String script = "script"; 
-	
+	String script = "script";
+
 	@Mandatory
 	Script getScript();
 	void setScript(Script script);

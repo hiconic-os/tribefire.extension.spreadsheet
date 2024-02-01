@@ -11,12 +11,13 @@
 // ============================================================================
 package tribefire.extension.spreadsheet.model.exchange.metadata;
 
-import com.braintribe.model.extensiondeployment.script.Script;
 import com.braintribe.model.generic.annotation.meta.Description;
 import com.braintribe.model.generic.annotation.meta.Mandatory;
 import com.braintribe.model.generic.reflection.EntityType;
 import com.braintribe.model.generic.reflection.EntityTypes;
 import com.braintribe.model.meta.data.EntityTypeMetaData;
+
+import tribefire.extension.scripting.model.deployment.Script;
 
 @Description("Maps a script that filters entities read from the spreadsheet. "
 		+ "A variable named 'entity' containing the entity to be filtered will be passed to the script to be filtered.")

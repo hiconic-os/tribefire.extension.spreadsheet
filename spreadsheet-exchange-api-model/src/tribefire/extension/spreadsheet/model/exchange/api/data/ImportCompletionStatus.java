@@ -11,6 +11,19 @@
 // ============================================================================
 package tribefire.extension.spreadsheet.model.exchange.api.data;
 
-public enum ImportCompletionStatus {
-	failed, problematic, successful
+import com.braintribe.model.generic.base.EnumBase;
+import com.braintribe.model.generic.reflection.EnumType;
+import com.braintribe.model.generic.reflection.EnumTypes;
+
+public enum ImportCompletionStatus implements EnumBase {
+	failed,
+	problematic,
+	successful;
+
+	public static EnumType T = EnumTypes.T(ImportCompletionStatus.class);
+
+	@Override
+	public EnumType type() {
+		return T;
+	}
 }

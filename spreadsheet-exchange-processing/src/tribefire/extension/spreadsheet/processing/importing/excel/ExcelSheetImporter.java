@@ -35,14 +35,12 @@ import com.braintribe.gm.model.reason.Reason;
 import com.braintribe.gm.model.reason.Reasons;
 import com.braintribe.gm.model.reason.essential.InternalError;
 import com.braintribe.logging.Logger;
-import com.braintribe.model.extensiondeployment.script.Script;
 import com.braintribe.model.generic.GenericEntity;
 import com.braintribe.model.generic.reflection.Property;
-import com.braintribe.model.processing.core.expert.api.DenotationMap;
-import com.braintribe.model.processing.deployment.script.ScriptEngine;
 import com.braintribe.utils.IOTools;
 import com.monitorjbl.xlsx.StreamingReader;
 
+import tribefire.extension.scripting.api.ScriptingEngineResolver;
 import tribefire.extension.spreadsheet.model.exchange.api.request.ImportExcelSheet;
 import tribefire.extension.spreadsheet.model.reason.ConversionFailed;
 import tribefire.extension.spreadsheet.model.reason.IncompleteEntity;
@@ -52,8 +50,8 @@ import tribefire.extension.spreadsheet.processing.importing.common.SpreadsheetIm
 public class ExcelSheetImporter extends SpreadsheetImporter<ImportExcelSheet> {
 	private static Logger logger = Logger.getLogger(ExcelSheetImporter.class);
 
-	public ExcelSheetImporter(DenotationMap<Script, ScriptEngine<?>> engines) {
-		super(engines);
+	public ExcelSheetImporter(ScriptingEngineResolver scriptingEngineResolver) {
+		super(scriptingEngineResolver);
 	}
 
 	private class ExcelEntityStreamer implements EntityStreamer {
