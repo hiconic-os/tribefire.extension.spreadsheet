@@ -11,9 +11,16 @@
 // ============================================================================
 package tribefire.extension.spreadsheet.exchange.wire;
 
+import static com.braintribe.wire.api.util.Lists.list;
+
+import java.util.List;
+
+import com.braintribe.wire.api.module.WireModule;
+
+import tribefire.extension.scripting.module.wire.ScriptingModuleWireModule;
+import tribefire.extension.spreadsheet.exchange.wire.space.SpreadsheetExchangeModuleSpace;
 import tribefire.module.wire.contract.StandardTribefireModuleWireModule;
 import tribefire.module.wire.contract.TribefireModuleContract;
-import tribefire.extension.spreadsheet.exchange.wire.space.SpreadsheetExchangeModuleSpace;
 
 public enum SpreadsheetExchangeModuleWireModule implements StandardTribefireModuleWireModule {
 
@@ -22,6 +29,14 @@ public enum SpreadsheetExchangeModuleWireModule implements StandardTribefireModu
 	@Override
 	public Class<? extends TribefireModuleContract> moduleSpaceClass() {
 		return SpreadsheetExchangeModuleSpace.class;
+	}
+
+	@Override
+	public List<WireModule> dependencies() {
+		//@formatter:off
+		return list(
+				ScriptingModuleWireModule.INSTANCE);
+		//@formatter:on
 	}
 
 }
