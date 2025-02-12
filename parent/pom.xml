@@ -28,7 +28,7 @@ limitations under the License.
         <V.com.braintribe.wire>[2.0,2.1)</V.com.braintribe.wire>
         <V.tribefire.extension.scripting>[1.0,1.1)</V.tribefire.extension.scripting>
         <V.org.apache.commons_commons-compress>1.21</V.org.apache.commons_commons-compress>
-        <V.commons-io>2.11.0</V.commons-io>
+        <V.commons-io>2.18.0</V.commons-io>
         <V.mockito>5.7.0</V.mockito>
     </properties>
     <licenses>
