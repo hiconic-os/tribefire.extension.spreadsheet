@@ -66,6 +66,14 @@ limitations under the License.
             <groupId>tribefire.extension.scripting</groupId>
             <artifactId>scripting-module</artifactId>
             <version>${V.tribefire.extension.scripting}</version>
+            <classifier>asset</classifier>
+            <type>man</type>
+            <?tag asset?>
+        </dependency>
+        <dependency>
+            <groupId>tribefire.extension.scripting</groupId>
+            <artifactId>scripting-module-api</artifactId>
+            <version>${V.tribefire.extension.scripting}</version>
         </dependency>
     </dependencies>
 </project>
