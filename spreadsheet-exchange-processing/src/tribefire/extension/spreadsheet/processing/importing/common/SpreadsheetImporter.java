@@ -166,9 +166,9 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 		converters.add(new FailingTypeConverter<S, T>(fromClass, toClass, reason));
 	}
 
-	private Map<Script, CompiledScript> compiledScriptCache = new HashMap<>();
-	private int threadCount = 8;
-	private ScriptingEngineResolver scriptingEngineResolver;
+	private final Map<Script, CompiledScript> compiledScriptCache = new HashMap<>();
+	private final int threadCount = 8;
+	private final ScriptingEngineResolver scriptingEngineResolver;
 
 	public SpreadsheetImporter(ScriptingEngineResolver scriptingEngineResolver) {
 		this.scriptingEngineResolver = scriptingEngineResolver;
@@ -533,7 +533,7 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 	private class UpdatableIdentitiesImport extends SessionImport {
 		private final List<Pair<Property, SpreadsheetIdentityProperty>> identificationProperties;
 		private final EntityHashingComparator<GenericEntity> identityEqProxyFactory;
-		private EntityType<GenericEntity> importTargetType;
+		private final EntityType<GenericEntity> importTargetType;
 
 		public UpdatableIdentitiesImport(EntityType<GenericEntity> importTargetType, ModelMdResolver cmdrContextBuilder,
 				Map<String, Property> propertyColumnMapping) {
@@ -560,9 +560,9 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 
 	private class SharableIdentitiesImport extends SessionImport {
 		private final EntityHashingComparator<GenericEntity> identityEqProxyFactory;
-		private Property hashProperty;
-		private PersistenceGmSession session;
-		private EntityType<GenericEntity> importTargetType;
+		private final Property hashProperty;
+		private final PersistenceGmSession session;
+		private final EntityType<GenericEntity> importTargetType;
 
 		public SharableIdentitiesImport(EntityType<GenericEntity> importTargetType, PersistenceGmSession session, Property hashProperty) {
 
@@ -616,9 +616,9 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 
 	private static class UpdateCloningContext extends BaseCloningContext {
 		private final List<Pair<Property, SpreadsheetIdentityProperty>> identificationProperties;
-		private Map<EqProxy<GenericEntity>, GenericEntity> existingEntitiesLookup = new HashMap<>();
+		private final Map<EqProxy<GenericEntity>, GenericEntity> existingEntitiesLookup = new HashMap<>();
 		private final EntityHashingComparator<GenericEntity> identityEqProxyFactory;
-		private EntityType<GenericEntity> importTargetType;
+		private final EntityType<GenericEntity> importTargetType;
 
 		public UpdateCloningContext(EntityType<GenericEntity> importTargetType, EntityHashingComparator<GenericEntity> identityEqProxyFactory,
 				PersistenceGmSession session, List<Pair<Property, SpreadsheetIdentityProperty>> identificationProperties) {
@@ -675,10 +675,10 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 	}
 
 	private static class SharingCloningContext extends BaseCloningContext implements ImportCloningContext {
-		private MultiMap<String, GenericEntity> entitiesByHash = new HashMultiMap<>();
-		private EntityHashingComparator<GenericEntity> identityEqProxyFactory;
-		private Property hashProperty;
-		private EntityType<GenericEntity> importTargetType;
+		private final MultiMap<String, GenericEntity> entitiesByHash = new HashMultiMap<>();
+		private final EntityHashingComparator<GenericEntity> identityEqProxyFactory;
+		private final Property hashProperty;
+		private final EntityType<GenericEntity> importTargetType;
 
 		public SharingCloningContext(EntityType<GenericEntity> importTargetType, EntityHashingComparator<GenericEntity> identityEqProxyFactory,
 				PersistenceGmSession session, Property hashProperty) {
@@ -892,7 +892,7 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 		private Property linkProperty;
 		private EntityHashing<GenericEntity> hashGenerator;
 		private Property hashProperty;
-		private EntityType<GenericEntity> importTargetType;
+		private final EntityType<GenericEntity> importTargetType;
 		private BiConsumer<GenericEntity, Integer> rowNumberEnricher;
 		private boolean shareEntities;
 
@@ -1199,24 +1199,24 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 
 	public class SheetEntityStreamingContextImpl<T extends ImportSpreadsheetRequest> extends SheetEntityStreamingContext<T> {
 		private static final int MONTIOR_UPDATE_INTERVAL_IN_MS = 200;
-		private EntityType<GenericEntity> importTargetType;
-		private T spreadsheetImport;
-		private Function<String, String> columnNameAdapter;
-		private Map<String, Property> properties;
+		private final EntityType<GenericEntity> importTargetType;
+		private final T spreadsheetImport;
+		private final Function<String, String> columnNameAdapter;
+		private final Map<String, Property> properties;
 		ModelMdResolver cmdrContextBuilder;
 		private Function<EntityType<?>, GenericEntity> entityFactory;
 		private int rowCount = 0;
 		private int totalRowCount = -1;
 		private int entityCount = 0;
 		private long lastStatusUpdate = -1;
-		private Object statusMonitor = new Object();
-		private Evaluator<ServiceRequest> requestEvaluator;
-		private Map<Pair<Class<?>, Property>, TypeConverter<Object, Object>> cachedConverters = new ConcurrentHashMap<>();
-		private Map<Pair<Class<?>, Property>, Function<Object, Object>> dedicatedConverters = new HashMap<>();
+		private final Object statusMonitor = new Object();
+		private final Evaluator<ServiceRequest> requestEvaluator;
+		private final Map<Pair<Class<?>, Property>, TypeConverter<Object, Object>> cachedConverters = new ConcurrentHashMap<>();
+		private final Map<Pair<Class<?>, Property>, Function<Object, Object>> dedicatedConverters = new HashMap<>();
 		private final BiFunction<Property, String, String> textAdapter;
-		private Map<Integer, Reason> errors = new TreeMap<>();
-		private Holder<Boolean> errorOverflow = new Holder<>(false);
-		private Set<Object> createdEntityIds = ConcurrentHashMap.newKeySet();
+		private final Map<Integer, Reason> errors = new TreeMap<>();
+		private final Holder<Boolean> errorOverflow = new Holder<>(false);
+		private final Set<Object> createdEntityIds = ConcurrentHashMap.newKeySet();
 		private BiConsumer<Integer, GenericEntity> transientEntityConsumer;
 		private final Supplier<Predicate<GenericEntity>> filterSupplier;
 
@@ -1299,22 +1299,27 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 			return errorOverflow.get();
 		}
 
+		@Override
 		public EntityType<GenericEntity> getImportTargetType() {
 			return importTargetType;
 		}
 
+		@Override
 		public T getSpreadsheetImport() {
 			return spreadsheetImport;
 		}
 
+		@Override
 		public Function<String, String> getColumnNameAdapter() {
 			return columnNameAdapter;
 		}
 
+		@Override
 		public Map<String, Property> getProperties() {
 			return properties;
 		}
 
+		@Override
 		public ModelMdResolver getCmdrContextBuilder() {
 			return cmdrContextBuilder;
 		}
@@ -1394,7 +1399,7 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 
 			switch (type.getTypeCode()) {
 				case enumType:
-					EnumType enumType = (EnumType) type;
+					EnumType<?> enumType = (EnumType<?>) type;
 					return (TypeConverter<Object, Object>) (TypeConverter<?, ?>) new EnumTypeConverter(enumType);
 				default:
 					for (TypeConverter<?, ?> converter : converters) {
@@ -1433,8 +1438,6 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 
 				return potential;
 			} catch (RuntimeException e) {
-				Class<?> targetClass = propertyType.getJavaType();
-
 				return Reasons.build(ConversionFailed.T)//
 						.text("Could not convert cell value [" + value + "] from column [" + column + "] for target property ["
 								+ targetProperty.getName() + "]") //

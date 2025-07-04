@@ -25,9 +25,9 @@ import tribefire.extension.spreadsheet.model.reason.ConversionFailed;
  * @author peter.gazdik
  */
 public class EnumTypeConverter implements TypeConverter<String, Enum<?>> {
-	private EnumType enumType;
+	private final EnumType<?> enumType;
 	
-	public EnumTypeConverter(EnumType enumType) {
+	public EnumTypeConverter(EnumType<?> enumType) {
 		super();
 		this.enumType = enumType;
 	}
