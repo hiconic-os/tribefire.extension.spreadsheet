@@ -38,7 +38,6 @@ import com.braintribe.gm.model.reason.Maybe;
 import com.braintribe.gm.model.reason.Reason;
 import com.braintribe.gm.model.reason.Reasons;
 import com.braintribe.gm.model.reason.essential.InternalError;
-import com.braintribe.logging.Logger;
 import com.braintribe.model.generic.GenericEntity;
 import com.braintribe.model.generic.reflection.Property;
 import com.braintribe.utils.IOTools;
@@ -52,7 +51,6 @@ import tribefire.extension.spreadsheet.processing.importing.common.SheetEntitySt
 import tribefire.extension.spreadsheet.processing.importing.common.SpreadsheetImporter;
 
 public class ExcelSheetImporter extends SpreadsheetImporter<ImportExcelSheet> {
-	private static Logger logger = Logger.getLogger(ExcelSheetImporter.class);
 
 	public ExcelSheetImporter(ScriptingEngineResolver scriptingEngineResolver) {
 		super(scriptingEngineResolver);
@@ -62,12 +60,12 @@ public class ExcelSheetImporter extends SpreadsheetImporter<ImportExcelSheet> {
 
 		private Workbook workbook;
 		private Iterator<Row> iterator;
-		private SheetEntityStreamingContext<ImportExcelSheet> context;
+		private final SheetEntityStreamingContext<ImportExcelSheet> context;
 		private List<ColumnInfo> columnInfos;
 		private InputStream in;
 		private int rowCount = 0;
-		private Integer startRow;
-		private int maxRows;
+		private final Integer startRow;
+		private final int maxRows;
 
 		private ExcelEntityStreamer(SheetEntityStreamingContext<ImportExcelSheet> context) {
 			this.context = context;
@@ -116,7 +114,6 @@ public class ExcelSheetImporter extends SpreadsheetImporter<ImportExcelSheet> {
 
 					// Map<Integer, Property> indices = null;
 					List<ColumnInfo> infos = null;
-					int index = 0;
 					while (cellIterator.hasNext()) {
 						Cell cell = cellIterator.next();
 
@@ -136,7 +133,6 @@ public class ExcelSheetImporter extends SpreadsheetImporter<ImportExcelSheet> {
 								infos.add(info);
 							}
 						}
-						index++;
 					}
 
 					if (infos != null) {// if (curNames.isEmpty()) {
@@ -249,6 +245,7 @@ public class ExcelSheetImporter extends SpreadsheetImporter<ImportExcelSheet> {
 			return null;
 		}
 
+		@Override
 		public void close() {
 			if (workbook != null)
 				IOTools.closeCloseableUnchecked(workbook);

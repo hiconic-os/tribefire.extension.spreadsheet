@@ -34,7 +34,6 @@ import com.braintribe.exception.Exceptions;
 import com.braintribe.gm.model.reason.Maybe;
 import com.braintribe.gm.model.reason.Reason;
 import com.braintribe.gm.model.reason.Reasons;
-import com.braintribe.logging.Logger;
 import com.braintribe.model.generic.GenericEntity;
 import com.braintribe.model.generic.reflection.Property;
 import com.braintribe.utils.IOTools;
@@ -53,7 +52,6 @@ import tribefire.extension.spreadsheet.model.reason.MalformedSpreadsheetContent;
 import tribefire.extension.spreadsheet.processing.importing.common.SheetEntityStreamingContext;
 
 public class CsvImporter extends tribefire.extension.spreadsheet.processing.importing.common.SpreadsheetImporter<ImportCsvSheet> {
-	private static Logger logger = Logger.getLogger(CsvImporter.class);
 
 	protected String defaultDelimiter = ",";
 
@@ -84,11 +82,11 @@ public class CsvImporter extends tribefire.extension.spreadsheet.processing.impo
 
 	private class CsvEntityStreamer implements EntityStreamer {
 
-		private SheetEntityStreamingContext<ImportCsvSheet> context;
+		private final SheetEntityStreamingContext<ImportCsvSheet> context;
 		private CSVReader reader;
 		private List<ColumnInfo> columnInfos;
-		private Integer startRow;
-		private int maxRows;
+		private final Integer startRow;
+		private final int maxRows;
 		private int rowCount;
 		private boolean failed;
 
@@ -176,7 +174,7 @@ public class CsvImporter extends tribefire.extension.spreadsheet.processing.impo
 			String delimiter = getDelimiter(spreadsheetImport);
 			String charset = getCharset(spreadsheetImport);
 
-			BOMInputStream bomIn = new BOMInputStream(spreadsheetImport.getSheet().openStream());
+			BOMInputStream bomIn = BOMInputStream.builder().setInputStream(spreadsheetImport.getSheet().openStream()).get();
 
 			if (bomIn.hasBOM())
 				charset = bomIn.getBOMCharsetName();

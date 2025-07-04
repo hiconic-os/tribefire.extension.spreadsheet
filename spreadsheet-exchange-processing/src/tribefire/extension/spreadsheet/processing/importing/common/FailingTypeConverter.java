@@ -15,14 +15,13 @@
 // ============================================================================
 package tribefire.extension.spreadsheet.processing.importing.common;
 
-import com.braintribe.common.potential.Potential;
 import com.braintribe.gm.model.reason.Maybe;
 import com.braintribe.gm.model.reason.Reason;
 
 public class FailingTypeConverter<S, T> implements TypeConverter<S, T> {
-	private Reason reason;
-	private Class<S> fromClass;
-	private Class<T> toClass;
+	private final Reason reason;
+	private final Class<S> fromClass;
+	private final Class<T> toClass;
 	
 	public FailingTypeConverter(Class<S> fromClass, Class<T> toClass, Reason reason) {
 		super();

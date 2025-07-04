@@ -68,6 +68,16 @@ limitations under the License.
             <groupId>tribefire.extension.spreadsheet</groupId>
             <artifactId>spreadsheet-exchange-processing</artifactId>
             <version>${V.tribefire.extension.spreadsheet}</version>
+            <exclusions>
+                <!--
+                    This would cause Eclipse to detect JUnit5 and fail due to:
+                    java.lang.ClassNotFoundException: org.junit.platform.engine.reporting.OutputDirectoryProvider
+                -->
+                <exclusion>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>tribefire.extension.spreadsheet</groupId>
