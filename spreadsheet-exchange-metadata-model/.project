@@ -2,6 +2,10 @@
 	<name>spreadsheet-exchange-metadata-model - tribefire.extension.spreadsheet</name>
 	<buildSpec>
 		<buildCommand>
+			<name>com.braintribe.devrock.arb.builder.ArtifactReflectionBuilder</name>
+			<arguments/>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>
 			<arguments/>
 		</buildCommand>
