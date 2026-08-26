@@ -12,6 +12,7 @@ import hiconic.rx.module.api.wire.RxPlatformContract;
 import hiconic.rx.scripting.api.ScriptingContract;
 import tribefire.extension.spreadsheet._SpreadsheetExchangeApiModel_;
 import tribefire.extension.spreadsheet.exchange.processing.service.SpreadsheetExchangeProcessor;
+import tribefire.extension.spreadsheet.exchange.api.SpreadsheetExchangeModels;
 import tribefire.extension.spreadsheet.model.exchange.api.request.SpreadsheetExchangeRequest;
 
 /**
@@ -35,7 +36,8 @@ public class SpreadsheetExchangeRxModuleSpace implements RxModuleContract {
 
 	@Override
 	public void configureModels(ModelConfigurations configurations) {
-		ModelConfiguration configuredModel = configurations.configuredModel(_SpreadsheetExchangeApiModel_.reflection);
+		ModelConfiguration configuredModel = configurations.extendedModel(
+				SpreadsheetExchangeModels.configuredSpreadsheetApiModel, _SpreadsheetExchangeApiModel_.reflection);
 		AccessServiceModelConfiguration serviceModelConfig = access.accessModelConfigurations().serviceModelConfiguration(configuredModel);
 
 		serviceModelConfig.bindAccessRequest(SpreadsheetExchangeRequest.T, this::spreadsheetExchangeProcessor);
