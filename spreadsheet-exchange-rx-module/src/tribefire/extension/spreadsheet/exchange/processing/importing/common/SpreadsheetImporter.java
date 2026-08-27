@@ -360,6 +360,7 @@ public abstract class SpreadsheetImporter<T extends ImportSpreadsheetRequest> {
 			BiConsumer<Integer, GenericEntity> transientEntityConsumer, EntityType<GenericEntity> importTargetType, T spreadsheetImport,
 			Function<String, String> columnNameAdapter, Map<String, Property> propertyColumnMapping, BiFunction<Property, String, String> textAdapter,
 			ModelMdResolver cmdrContextBuilder, EnrichingContext enrichingContext) throws Exception {
+
 		SheetEntityStreamingContextImpl<T> streamingContext = new SheetEntityStreamingContextImpl<>(importTargetType, spreadsheetImport,
 				columnNameAdapter, propertyColumnMapping, textAdapter, cmdrContextBuilder, context);
 		streamingContext.setTransientEntityConsumer(transientEntityConsumer);
